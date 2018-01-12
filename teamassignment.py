@@ -1,12 +1,18 @@
 # TO DO:
 # Divide users by block, run team assignment on each block
-# Make sure team size bounds are feasible given sample size
+# [done] Make sure team size bounds are feasible given sample size
 # Range-normalize the distances for each variable 
 # Detect & trim outlier distances for each variable
 # Weight and sum distances for all variables
 # For evaluation: try NOT excluding the other performer rows, and evaluate 
 #     variance of results on all users
 # See how different the results are over multiple runs
+# [done] give four optional arguments:
+#   number of teams per block
+#   minimum team size
+#   maximum team size
+#   condition
+# [done] check that arguments are feasible
 
 # requirements 
 import pandas as pd
@@ -16,35 +22,94 @@ import scipy.spatial
 import os
 import subprocess
 import sys
+import math
 
 # get input and output filenames from sys argv
 inputfile = sys.argv[1]
 outputfile = sys.argv[2]
 input_data = pd.DataFrame.from_csv(inputfile)
 
-# save the indices of the cells we'll need to change in the output data
-swarm_rows = np.where(input_data["cond"] == "swarm")[0]
-team_col = np.where(input_data.columns.values == "team")[0]
+# default is k = 14 teams per block (following the Dec 8 version of the 
+# experimental design) unless a value is provided as the third argument
+if len(sys.argv) > 3:
+    k = sys.argv[3]
+    k_default = " (entered as command line argument)"
+else:
+    k = 14
+    k_default = " (default)"
+
+# default is min_n = 25 participants per team
+if len(sys.argv) > 4:
+    min_n = sys.argv[4]
+    min_n_default = " (entered as command line argument)"
+else:
+    min_n = 25
+    min_n_default = " (default)"
+
+# default is max_n = 37 participants per team
+if len(sys.argv) > 5:
+    max_n = sys.argv[5]
+    max_n_default = " (entered as command line argument)"
+else:
+    max_n = 37
+    max_n_default = " (default)"
+
+# default condition is SWARM, unless a value is provided as the 6th argument
+if len(sys.argv) > 6:
+    cond = sys.argv[6]
+    cond_default = " (entered as command line argument)"
+else:
+    cond = "swarm"
+    cond_default = " (default)"
+
 
 # remove participants from other performers
-df = input_data[input_data["cond"] == "swarm"].copy()
+df = input_data[input_data["cond"] == cond].copy()
 
-# k teams per block (k=14 in the December 8 version of the experimental design)
-k = 14
-n = df.shape[0]
+# save the indices of the cells we'll need to change in the output data
+cond_rows = np.where(input_data["cond"] == cond)[0]
+team_col = np.where(input_data.columns.values == "team")[0]
 
-# test whether JDK is installed
-proc = subprocess.Popen("javac -version", stdout=subprocess.PIPE, shell=True)
-output = proc.stdout.read()
-have_java = output[0:5].decode("utf-8") == "javac"
-if not have_java:
-    msg = """You do not have the Java compiler installed. The Maximally 
-          Diverse Grouping Problem solver requires JDK 6 or higher. 
-          Please run `sudo apt-get install openjdk-8-jdk` and then try 
-          running this script again."""
+# get list of unique blocks in this condition
+blocks = df["block"].unique().tolist()
+
+# n = list of sample sizes per block
+n = df.groupby("block").size().tolist()
+
+# if you divide participants into equal sized teams, they differ by at most 
+# one participant. Natural upper and lower bounds:
+lowers = [math.floor(b / float(k)) for b in n]
+uppers = [math.ceil(b / float(k)) for b in n]
+
+# TEST whether number of teams, sample size, and min+max team size constraints
+# are all consistent. If inconsistent, exit with an error explaining which 
+# blocks the constraint was violated for, whether default args were used, and 
+# how to enter the optional arguments.
+
+if not (all(l >= min_n for l in lowers) & all(u <= max_n for u in uppers)):
+    msg = "The number of teams per block, sample size per block, and upper " + \
+          "and lower limits on team size are incompatible with each other. " + \
+          "Sample sizes per block in input file: " + str(n) + \
+          ". Number of teams per block: " + str(k) + k_default + \
+          ". Lower limit on team size: " + str(min_n) + min_n_default + \
+          ". Upper limit on team size: " + str(max_n) + max_n_default + ". " + \
+          "Enter these parameters via the command line as follows: \n\n" + \
+          "teamassignment.py inputfile.csv outputfile.csv num_teams_per_block" + \
+          " min_n_per_team max_n_per_team condition"
     sys.exit(msg)
 
-relevant_vars = ["block", 
+# # test whether JDK is installed
+# proc = subprocess.Popen("javac -version", stdout=subprocess.PIPE, shell=True)
+# output = proc.stdout.read()
+# have_java = output[0:5].decode("utf-8") == "javac"
+# if not have_java:
+#     msg = """You do not have the Java compiler installed. The Maximally 
+#           Diverse Grouping Problem solver requires JDK 6 or higher. 
+#           Please run `sudo apt-get install openjdk-8-jdk` and then try 
+#           running this script again."""
+#     sys.exit(msg)
+
+relevant_vars = [#"block", 
 #     "cond", 
 #     "team", 
 #     "requested_avatar", 
@@ -258,15 +323,12 @@ for i in range(df.shape[1]):
     good_enough = df.iloc[:,i].median()
     df.iloc[np.where(df.isnull().iloc[:, i])[0], i] = good_enough
 
-# set the number of teams
-num_teams = 4
-
 # team size limits
 # TODO: include a test of whether the sample size is too small or too large
-lims = " 30 37"
+lims = " " + str(min_n) + " " + str(max_n)
 
 # where to write the file for the solver
-instance_filename = 'test_instance_manhattan.txt'
+instance_filename = 'mdgp_solver_input.txt'
 
 # if instance file already exists, remove it
 try:
@@ -277,7 +339,7 @@ except OSError:
 # TODO: incorporate new distance function here
 # write distances to file
 with open(instance_filename, 'a') as the_file:
-    the_file.write(str(n) + " " + str(num_teams) + " ss" + str(lims)*num_teams + "\n")
+    the_file.write(str(n) + " " + str(k) + " ss" + str(lims)*k + "\n")
     for i in range(n):
         for j in range(i+1, n):
             mdist = scipy.spatial.distance.cityblock(df.iloc[i], df.iloc[j])
@@ -285,7 +347,7 @@ with open(instance_filename, 'a') as the_file:
 
 # run solver on instance file, write data to solver file
 import subprocess
-solver_filename = "test_output_manhattan.txt"
+solver_filename = "mdgp_solver_output.txt"
 bash_command = "java -jar mdgp_jors_2011.jar SO " + instance_filename + " 60000 > " + solver_filename
 subprocess.call(bash_command, shell=True)
 
@@ -303,7 +365,7 @@ sol_index = np.where([item.startswith('Solution: [') for item in content])
 solution = [int(x) for x in content[sol_index[0][0]][11:-1].split(", ")]
 
 # add MDGP solution to dataframe of initial data
-input_data.iloc[swarm_rows, team_col] = solution
+input_data.iloc[cond_rows, team_col] = solution
 
 # write to file
 input_data.to_csv(outputfile)
