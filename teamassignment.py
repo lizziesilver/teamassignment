@@ -1,18 +1,9 @@
 # TO DO:
-# [done] Divide users by block, run team assignment on each block
-# [done] Make sure team size bounds are feasible given sample size
-# [done] Range-normalize the distances for each variable 
 # Detect & trim outlier distances for each variable
-# Weight and sum distances for all variables
+# Weight distances for all variables
 # For evaluation: try NOT excluding the other performer rows, and evaluate 
 #     variance of results on all users
 # See how different the results are over multiple runs
-# [done] give four optional arguments:
-#   number of teams per block
-#   minimum team size
-#   maximum team size
-#   condition
-# [done] check that arguments are feasible
 
 # requirements 
 import pandas as pd
@@ -40,7 +31,7 @@ else:
     k_default = True
     print("Using default number of teams per block: 14")
 
-# default condition is SWARM, unless a value is provided as the 6th argument
+# default condition is SWARM, unless a value is provided as the 4th argument
 if len(sys.argv) > 4:
     cond = sys.argv[4]
     cond_default = False
@@ -58,9 +49,6 @@ df = input_data[input_data["cond"] == cond].copy()
 # get list of unique blocks in this condition
 blocks = df["block"].unique().tolist()
 
-# block_n = dict of sample sizes per block
-block_n = df.groupby("block").size().to_dict()
-
 # save the indices of the cells we'll need to change in the output data
 team_col = np.where(input_data.columns.values == "team")[0]
 block_rows = {}
@@ -68,22 +56,15 @@ for b in blocks:
     block_rows[b] = np.where((input_data["cond"] == cond) & \
                              (input_data["block"] == b))[0]
 
+# block_n = dict of sample sizes per block
+block_n = df.groupby("block").size().to_dict()
+
 # if you divide participants into equal sized teams, they differ by at most 
 # one participant. Natural upper and lower bounds on team size:
 lowers = {x: math.floor(block_n[x] / float(k)) for x in list(block_n.keys())}
 uppers = {x: math.ceil(block_n[x] / float(k)) for x in list(block_n.keys())}
 
-# # test whether JDK is installed
-# proc = subprocess.Popen("javac -version", stdout=subprocess.PIPE, shell=True)
-# output = proc.stdout.read()
-# have_java = output[0:5].decode("utf-8") == "javac"
-# if not have_java:
-#     msg = """You do not have the Java compiler installed. The Maximally 
-#           Diverse Grouping Problem solver requires JDK 6 or higher. 
-#           Please run `sudo apt-get install openjdk-8-jdk` and then try 
-#           running this script again."""
-#     sys.exit(msg)
-
+# variables that contribute to the distance function
 relevant_vars = ["block", 
     "team_lead", 
     "age", 
@@ -129,13 +110,13 @@ relevant_vars = ["block",
     "coh_score_3way", 
     "coh_score_2way"]
 
+# subset to relevant variables
+df = df[relevant_vars]
+
 # convert gender and age into numeric variables
 df.loc[:,"gender"] = [int(x == "f") for x in df.loc[:,"gender"]]
 age_dict = {'18-24':0, '25-34':1, '35-44':2, '45-54':3, '55-64':4, '65+':5}
 df.loc[:,["age"]] = [age_dict[x] for x in df.loc[:,"age"]]
-
-# subset to relevant variables
-df = df[relevant_vars]
 
 # fix up data in each column (except block)
 for i in range(df.shape[1]):
@@ -152,6 +133,8 @@ fulldf = df.copy()
 # run solver once for each block
 for b in blocks:
     print("Writing input file for MDGP solver for Block " + str(b))
+    
+    # subset by block, then drop the "block" column
     df = fulldf[fulldf["block"] == b].copy()
     df.drop("block", axis=1, inplace=True)
     
@@ -166,7 +149,7 @@ for b in blocks:
     
     # create instance file for MDGP solver
     with open(instance_filename, 'a') as the_file:
-        # first line has sample size, number of teamsm, "same size", and 
+        # first line has sample size, number of teams, "same size", and 
         # size limits for each team
         lims = " " + str(lowers[b]) + " " + str(uppers[b]) 
         the_file.write(str(block_n[b]) + " " + str(k) + " ss" + \
@@ -178,7 +161,7 @@ for b in blocks:
                 mdist = scipy.spatial.distance.cityblock(df.iloc[i], df.iloc[j])
                 the_file.write(str(i) + " " + str(j) + " " + str(mdist) + "\n")
     
-    print("Running MDGP solver for Block " + str(b))
+    print("Running MDGP solver for Block " + str(b) + ", this step takes 2 min")
         
     # run solver on instance file, write data to solver file
     solver_filename = "block_" + str(b) + "_mdgp_solver_output.txt"

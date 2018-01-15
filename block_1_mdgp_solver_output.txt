@@ -2,4 +2,4 @@ Loading instance file "block_1_mdgp_solver_input.txt"...
 Instance file "block_1_mdgp_solver_input.txt" successfully loaded.
 Executing method "SO" with instance file "block_1_mdgp_solver_input.txt"
 Execution CPU time: 120000 millis
-Seed value: 1515989156875
+Seed value: 1515992167241
