@@ -1,9 +1,6 @@
 # TO DO:
 # Detect & trim outlier distances for each variable
 # Weight distances for all variables
-# For evaluation: try NOT excluding the other performer rows, and evaluate 
-#     variance of results on all users
-# See how different the results are over multiple runs
 
 # requirements 
 import pandas as pd
@@ -114,7 +111,8 @@ relevant_vars = ["block",
 df = df[relevant_vars]
 
 # convert gender and age into numeric variables
-df.loc[:,"gender"] = [int(x == "f") for x in df.loc[:,"gender"]]
+gender_dict = {'f':1., 'm':0., 'o':0.5}
+df.loc[:,["gender"]] = [gender_dict[x] for x in df.loc[:,"gender"]]
 age_dict = {'18-24':0, '25-34':1, '35-44':2, '45-54':3, '55-64':4, '65+':5}
 df.loc[:,["age"]] = [age_dict[x] for x in df.loc[:,"age"]]
 
