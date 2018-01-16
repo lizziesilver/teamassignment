@@ -123,7 +123,7 @@ for i in range(df.shape[1]):
         df.iloc[np.where(df.isnull().iloc[:, i])[0], i] = df.iloc[:,i].median()
         # and normalize the range of every column 
         df.iloc[:,i] = df.iloc[:,i] - df.iloc[:,i].min() 
-        if df.iloc[:,i].max() != 0:
+        if df.iloc[:,i].max() != 0: # avoid dividing by 0
             df.iloc[:,i] = df.iloc[:,i] / df.iloc[:,i].max()
 
 # make copy of df with all blocks before subsetting by block
