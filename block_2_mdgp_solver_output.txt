@@ -1,9 +1,17 @@
 Loading instance file "block_2_mdgp_solver_input.txt"...
-Instance file "block_2_mdgp_solver_input.txt" successfully loaded.
-Executing method "SO" with instance file "block_2_mdgp_solver_input.txt"
-Execution CPU time: 120000 millis
-Seed value: 1515988693164
-Method "SO" successfully executed
-Execution Time: 120001 millis
-Solution value: 6048.986679553986
-Solution: [0, 1, 0, 1, 2, 1, 0, 0, 2, 0, 2, 0, 2, 1, 2, 1, 1, 2, 0, 2, 2, 1, 2, 1, 0, 2, 1, 0, 2, 0, 1, 2, 0, 0, 2, 0, 0, 1, 1, 0, 1, 2, 1, 1, 2, 2, 2, 0, 0, 1, 2, 1, 0, 1, 2, 1, 1, 0, 0, 2]
+INSTANCE LOADING ERROR
+Error while loading instance file "block_2_mdgp_solver_input.txt".
+es.optsicom.lib.graph.matrix.FormatException: Format error
+	at es.optsicom.lib.graph.matrix.MatrixGraphLoaderDistanceList.loadGraph(MatrixGraphLoaderDistanceList.java:77)
+	at es.optsicom.lib.graph.matrix.MatrixGraphLoader.loadGraph(MatrixGraphLoader.java:34)
+	at es.optsicom.lib.graph.matrix.MatrixGraphLoader.loadGraph(MatrixGraphLoader.java:23)
+	at es.optsicom.problem.mdgp.MDGPInstanceLoader.loadInstance(MDGPInstanceLoader.java:24)
+	at es.optsicom.lib.experiment.ConsoleExperiment.execMethod(ConsoleExperiment.java:206)
+	at es.optsicom.lib.experiment.ConsoleExperiment.execMethodWithArgs(ConsoleExperiment.java:124)
+	at es.optsicom.problem.mdgp.experiment.MDGPConsoleExperiment.main(MDGPConsoleExperiment.java:29)
+Caused by: java.lang.NumberFormatException: For input string: "nan"
+	at java.base/jdk.internal.math.FloatingDecimal.readJavaFormatString(FloatingDecimal.java:2054)
+	at java.base/jdk.internal.math.FloatingDecimal.parseFloat(FloatingDecimal.java:122)
+	at java.base/java.lang.Float.parseFloat(Float.java:455)
+	at es.optsicom.lib.graph.matrix.MatrixGraphLoaderDistanceList.loadGraph(MatrixGraphLoaderDistanceList.java:58)
+	... 6 more
