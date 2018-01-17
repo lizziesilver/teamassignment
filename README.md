@@ -4,10 +4,10 @@
 
 ## Requirements:
 
-* Python 3.6
-* The Java library [`mdgp_jors_2011.jar`](http://www.optsicom.es/mdgp/mdgp_jors_2011.jar) (also available [in this repo](https://github.com/lizziesilver/teamassignment/raw/master/mdgp_jors_2011.jar), in case [the Optsicom website](http://www.optsicom.es/mdgp/) goes down). This jar must be in the same directory as the Python script, `teamassignment.py`. 
-* Note: the python script will write files to the same directory that are inputs and outputs for the Java library; their filenames are "`block_n_mdgp_solver_input.tx`" and "`block_n_mdgp_solver_output.txt`", where n is an integer, so make sure nothing in the folder is named that or it will be overwritten.
-* Note: Input data must have variable names matching those in the [data dictionary](https://github.com/lizziesilver/teamassignment/raw/master/CREATE_Ind.Diffs_Data.Dictionary_Final_1.11.18%20(1).xlsx). 
+* Python 3.6. Required Python packages are listed in [`requirements.txt`]().
+* The Java library [`mdgp_jors_2011.jar`](http://www.optsicom.es/mdgp/mdgp_jors_2011.jar) (also available [in this repo](https://github.com/lizziesilver/teamassignment/raw/master/mdgp_jors_2011.jar), in case [the Optsicom website](http://www.optsicom.es/mdgp/) goes down). This jar must be located in the same directory as the Python script, `teamassignment.py`. 
+* Note: the Python script will write files to the same directory that are inputs and outputs for the Java library; their filenames are "`block_n_mdgp_solver_input.tx`" and "`block_n_mdgp_solver_output.txt`", where n is an integer, so make sure nothing in the folder is named that or it will be overwritten.
+* Note: Input data must have variable names matching those in the [data dictionary](https://github.com/lizziesilver/teamassignment/raw/master/CREATE_Ind.Diffs_Data.Dictionary_Final_1.11.18.xlsx). 
 
 ## To run:
 
