@@ -5,7 +5,7 @@
 # requirements 
 import pandas as pd
 import numpy as np
-import random
+#import random
 import scipy.spatial
 import os
 import subprocess
