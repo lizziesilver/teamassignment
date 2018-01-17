@@ -2,6 +2,6 @@ users_mturk.csv
 test_file_output.csv
 users_mturk_output.csv
 users_mturk*
-
+block_*
 teamassignment.ipynb
 .ipynb_checkpoints
