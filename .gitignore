@@ -5,3 +5,5 @@ users_mturk*
 block_*
 teamassignment.ipynb
 .ipynb_checkpoints
+venv
+
