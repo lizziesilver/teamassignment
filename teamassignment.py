@@ -5,12 +5,12 @@
 # requirements 
 import pandas as pd
 import numpy as np
-#import random
 import scipy.spatial
 import os
 import subprocess
 import sys
 import math
+import itertools
 
 # get input and output filenames from sys argv
 inputfile = sys.argv[1]
@@ -155,10 +155,10 @@ for b in blocks:
                        str(lims) * k + "\n")
         # following lines have row numbers identifying a pair of participants, 
         # and the distance between that pair.
-        for i in range(block_n[b]):
-            for j in range(i+1, block_n[b]):
-                mdist = scipy.spatial.distance.cityblock(df.iloc[i], df.iloc[j])
-                the_file.write(str(i) + " " + str(j) + " " + str(mdist) + "\n")
+        indices = list(itertools.combinations(range(block_n[b]), 2))
+        distout = pd.DataFrame(indices)
+        distout["d"] = scipy.spatial.distance.pdist(df, metric='cityblock')
+        distout.to_csv(the_file, header=False, index=False, sep=" ")
     
     print("Running MDGP solver for Block " + str(b) + ", this step takes 2 min")
         
