@@ -30,12 +30,34 @@ And if another performer (e.g. BARD) wants to use it, they can call it like so:
 
 I've hard-coded a time-limit for the solver, so it will take two minutes to assign each block of participants to teams.
 
+## Background on the solver
+
+My goal was to increase diversity within teams. This is an instance of the [Maximally Diverse Grouping Problem](http://www.optsicom.es/mdgp/) (MDGP). It's like an anti-clustering problem: you want to group elements together if they're different rather than similar.
+
+Like clustering, the problem divides into two parts. First, define a distance function that tells you how different any two people are. Second, find a partition that maximises the sum of distances among the pairs within each group. The second step is what most MDGP papers address. 
+
+Most recent MDGP papers benchmark their methods against a publicly available library of MDGP solvers, [available from the Optsicom website](http://www.optsicom.es/mdgp/#state-of-the-art-methods). I used this library. Unfortunately it's not open-source. You have to call the jar from the command line and pass it a text file of pairwise distances and constraints (number of teams, limits on team size). It then writes its solution to file.
+
+## The wrapper
+I wrote a Python wrapper that does the following:
+
+1. Takes a CSV file of responses to the Individual Differences Survey
+2. Calculates the distances between individuals & writes them to file
+   * Features: for the psych tests, I only used the scores (I ignored responses to individual items, and the timing measures). I ignored college major and other language because they're free text input. Otherwise I used all the substantive variables.
+   * Normalisation: I normalised each variable to have range 0-1
+   * Distance function: Manhattan distance
+6. Runs the MDGP solver on that input, interprets the solver's output, and writes the final team assignments to file.
+
+It's pretty simple; if you want to modify, say, the distance function it should be straightforward. 
+
 ## Performance:
 
-The MDGP solver dramatically improves covariate balance across teams, for all features, with real data. To evaluate performance, I took T&E's sample of 301 people, and used the solver to create 10 teams of 30 or 31 people. I looked at the variation among the team means on each variable. Compared to random assignment, the solver reduces the standard deviation of the mean by about 65% for all variables:
+The MDGP solver dramatically improves covariate balance across teams, for all features, with real data. To evaluate performance, I took T&E's sample of 301 people, and used the solver to create 10 teams of 30 or 31 people. I looked at the variation among the team means on each variable. Compared to random assignments, the solver reduces the standard deviation of the mean by about 65% for all variables:
 
 ![Covariate balance improved 65% with the solver](img/balance.png?raw=true "Covariate balance improved 65% with the solver")
 
 The solver also produces a small but consistent improvement in diversity within teams. The mean of the within-team standard deviations increased by about 3% for all variables:
 
 ![Team diversity improved 3% with the solver](img/diversity.png?raw=true "Team diversity improved 3% with the solver")
+
+Note: In relative terms, the improvement in covariate balance looks larger than the improvement in within-team diversity. However, in absolute terms, the increase in within-team variance must be exactly the same size as the decrease in between-team variance. This follows from the [Law of Total Variance](https://en.wikipedia.org/wiki/Law_of_total_variance).
